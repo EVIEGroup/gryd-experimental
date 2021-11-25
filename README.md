@@ -1,11 +1,19 @@
 # decentranet
  
-Commands
+## Setup
 
-npm run test
+`npm install`
 
-npm run build
+## Commands
 
-npm run start
+### Debug Test (Watch file changes)
+`npm run dev`
 
-npm run dev
+### Run Tests
+
+`npm run test`
+
+### Build & Run
+
+`npm run build`
+`npm run start`
