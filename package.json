@@ -8,7 +8,9 @@
     "test": "jest --no-cache",
     "build": "tsc",
     "start": "node ./dist/index.js",
-    "dev": "tsc-watch --onSuccess \"npm run start\""
+    "dev": "tsc-watch --onSuccess \"npm run start -- --port 8080\"",
+    "dev2": "tsc-watch --onSuccess \"npm run start -- --port 8082 --masterport 8081\"",
+    "dev3": "tsc-watch --onSuccess \"npm run start -- --port 8084 --masterport 8083\""
   },
   "repository": {
     "type": "git",

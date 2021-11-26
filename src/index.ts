@@ -1,18 +1,11 @@
-import { HttpService } from "./services/http.service";
 import { WorkerService } from "./services/worker.service";
 import { BlockchainService } from "./services/blockchain.service";
 
-
-const blockchain = new BlockchainService();
-
-console.log(blockchain.getLastBlock());
-
-export const s = 'lol';
-
-export const t = (new HttpService('lol2'));
+//const blockchain = new BlockchainService();
+//console.log(blockchain.getLastBlock());
 
 const worker = new WorkerService();
-const deployedHash = worker.deploy(`
+const deployedHash = worker.contractService.deploy(`
 import { HttpService } from 'http-service';
 
 class Test2 {
@@ -39,6 +32,8 @@ export default class Test extends Test2 {
 
 //console.log(this);
 `);
+
+//console.log(deployedHash);
 
 // { "type": "CALL", "hash": "adfaf7905d0be2e3bf1793b6a3b137082974ad2271b61ff3ab6bad4c4a80f424", "method": "test" }
 // { "type": "CALL", "hash": "cd9db92030b411d2e2faed4cd899845b95935f2d22e9591472ffed69e9975701", "method": "test" }
