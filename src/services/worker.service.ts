@@ -117,7 +117,7 @@ export class WorkerService {
           },
           nat: {
             enabled: true,
-            description: `ipfs@${os.hostname()}`
+            description: `decentranet@${os.hostname()}`
           }
         },
         metrics: {
