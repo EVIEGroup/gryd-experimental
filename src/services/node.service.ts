@@ -21,7 +21,7 @@ export class NodeService {
         this.contractService = new ContractService(this.node);
         this.node.on('peer:discovery', async (peerId) => { 
             console.log('Discovered:', peerId.toB58String()); 
-            await this.wait(500); 
+            await this.wait(Math.random() * 5000); 
             this.ready = true;
             resolve(); 
         });

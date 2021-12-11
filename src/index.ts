@@ -19,10 +19,8 @@ export default class Test extends Test2 {
         //console.log('Test2', HttpService.constructor);
         //console.log('Test', new HttpService('lol').run());
         const currentState = await getState('increment');
-        console.log('LOL', currentState);
         const newState = typeof currentState === 'number' ? currentState + 1 : 1;
         updateState('increment', newState);
-        console.log('LOL2', newState);
 
         //return Crypto.createKeyPair('lol').publicKey;
 

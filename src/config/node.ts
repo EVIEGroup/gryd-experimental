@@ -64,13 +64,13 @@ export function NodeConfig(listen) {
             // }
             },
             pubsub: {
-            enabled: true,
-            emitSelf: false,
-            globalSignaturePolicy: 'StrictNoSign'
+                enabled: true,
+                emitSelf: false,
+                globalSignaturePolicy: 'StrictNoSign'
             },
             nat: {
-            enabled: true,
-            description: `decentranet@${os.hostname()}`
+                enabled: true,
+                description: `decentranet@${os.hostname()}`
             }
         },
         metrics: {
