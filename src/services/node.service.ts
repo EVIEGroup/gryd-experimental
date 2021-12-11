@@ -38,6 +38,10 @@ export class NodeService {
 
     async callContract(hash: string, payload: { method: string, params: string[] }) {
         if(this.ready) {
+            await this.node.pubsub.subscribe(hash);
+            this.node.pubsub.on(hash, (msg) => {
+                console.log('RECEIVED MESSAGE: ', uint8ArrayToString(msg.data));
+            });
             const message = await this.node.contentRouting.get(Buffer.from(hash, 'hex'));
             const value = uint8ArrayToString(message.val);
 
