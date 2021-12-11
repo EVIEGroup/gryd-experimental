@@ -1,6 +1,4 @@
-import { WorkerService } from "./services/worker.service";
-import { Crypto } from "./helpers/crypto";
-import { v4 as uuidv4 } from 'uuid';
+import { NodeService } from "./services/node.service";
 
 //const blockchain = new BlockchainService();
 //console.log(blockchain.getLastBlock());
@@ -16,13 +14,15 @@ class Test2 {
 }
 
 export default class Test extends Test2 {
-    test() {
+    async test() {
         //console.log(process);
         //console.log('Test2', HttpService.constructor);
         //console.log('Test', new HttpService('lol').run());
-        const currentState = getState('increment');
+        const currentState = await getState('increment');
+        console.log('LOL', currentState);
         const newState = typeof currentState === 'number' ? currentState + 1 : 1;
         updateState('increment', newState);
+        console.log('LOL2', newState);
 
         //return Crypto.createKeyPair('lol').publicKey;
 
@@ -37,8 +37,18 @@ export default class Test extends Test2 {
 //console.log(this);
 `;
 
-const worker = new WorkerService(uuidv4());
+// worker.test();
 
-const deployedHash = worker.contractService.deploy(contractCode);
+test();
 
-worker.test('test');
+async function test() {
+    const node = new NodeService();
+    await node.start();
+
+    const deployedHash = await node.deployContract(contractCode);
+    const callContract = await node.callContract(deployedHash, {
+        method: 'test',
+        params: []
+    });
+    console.log(callContract);
+}

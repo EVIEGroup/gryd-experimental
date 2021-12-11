@@ -1,20 +1,20 @@
 import { HttpService } from "./http.service";
 import { NodeVM, VMScript } from "vm2";
 import ts from "typescript";
-import crypto from 'crypto';
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string';
+import { toString as uint8ArrayToString } from 'uint8arrays/to-string';
 import { Crypto } from "../helpers/crypto";
+import Libp2p from 'libp2p';
 
 export class ContractService {
-    vm: NodeVM;
-    hashes = new Map();
-    state: any = {};
+    constructor(protected node: Libp2p) {}
 
-    constructor() {
-        this.vm = new NodeVM({ 
+    createVM(contractHash: string) {
+        return new NodeVM({ 
             sandbox: { 
-                updateState: (key: string, value: any) => this.updateState(key, value), 
-                getState: (key: string) => this.getState(key), 
-                process: { title: 'Decentranet' }, 
+                updateState: async (key: string, value: any) => this.updateState(contractHash, key, value), 
+                getState: async (key: string) => this.getState(contractHash, key), 
+                process: { title: 'Decentranet', contract: contractHash }, 
                 eval: null 
             },
             eval: false, 
@@ -31,12 +31,21 @@ export class ContractService {
         });
     }
 
-    updateState(key: string, value: any) {
-        this.state[key] = value;
+    async updateState(contractHash: string, key: string, value: any) {
+        await this.node.contentRouting.put(uint8ArrayFromString(contractHash + key), uint8ArrayFromString(value));
+        await this.node.pubsub.publish(contractHash, uint8ArrayFromString(value));
+        return value;
     }
 
-    getState(key: string) {
-        return this.state[key];
+    async getState(contractHash: string, key: string) {
+        try {
+            const value = await this.node.contentRouting.get(uint8ArrayFromString(contractHash + key));
+            const trueValue = uint8ArrayToString(value.val);
+            
+            return parseInt(trueValue);
+        } catch(e) {
+            return null;
+        }
     }
 
     compile(script: string) {
@@ -44,27 +53,9 @@ export class ContractService {
         return new VMScript(res.outputText);
     }
     
-    find(hash: string) {
-        if(this.hashes.has(hash)) {
-            return this.hashes.get(hash);
-        } else {
-            throw new Error('Cannot find deployed script');
-        }
-    }
-
-    deploy(script: string) {
-        const hash = Crypto.hash(script);
-        let compiledScript: VMScript = this.compile(script);
-        this.hashes.set(hash, new (this.vm.run(compiledScript)).default);
-        return hash;
-    }
-
-    deployedContracts() {
-        return Object.keys(this.hashes);
-    }
-    
-    callContract(payload: { hash: string, params: any, method: string }) {
-        const deploymentClass = this.find(payload.hash);
+    callContract(contractHash: string, contract: VMScript, payload: { params: string[], method: string }) {
+        const vm = this.createVM(contractHash);
+        const deploymentClass = new (vm.run(contract)).default
         const methodParams = payload.params ? payload.params : [];
         const response = deploymentClass[payload.method](...methodParams);
         return response;
