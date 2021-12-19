@@ -35,8 +35,11 @@
   },
   "dependencies": {
     "@achingbrain/libp2p-noise": "^5.0.0",
+    "datastore-level": "^7.0.1",
+    "isolated-vm": "^4.3.6",
     "libp2p": "^0.35.1",
     "libp2p-bootstrap": "^0.14.0",
+    "libp2p-floodsub": "^0.28.0",
     "libp2p-gossipsub": "^0.12.1",
     "libp2p-kad-dht": "^0.27.2",
     "libp2p-mdns": "^0.18.0",

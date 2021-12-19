@@ -1,52 +1,48 @@
 import { NodeService } from "./services/node.service";
-
+import { v4 as uuidv4 } from 'uuid';
 //const blockchain = new BlockchainService();
 //console.log(blockchain.getLastBlock());
 const contractCode = `
-import { HttpService } from 'http-service';
-import { Crypto } from 'crypto';
+//import { HttpService } from 'http-service';
+// import { Crypto } from 'crypto';
 
 class Test2 {
     j = 0;
     testJ() {
-        return this.j++;
+       return this.j++;
     }
 }
 
 export default class Test extends Test2 {
-    async test() {
-        //console.log(process);
-        //console.log('Test2', HttpService.constructor);
-        //console.log('Test', new HttpService('lol').run());
-        const currentState = await getState('increment');
+    async test(i) {
+        const currentState = await getState('increment'+i);
         const newState = typeof currentState === 'number' ? currentState + 1 : 1;
-        updateState('increment', newState);
-
-        //return Crypto.createKeyPair('lol').publicKey;
+        await updateState('increment'+i, newState);
 
         return newState;
     }
-
-    test2() {
-        return getState('increment');
-    }
 }
-
-//console.log(this);
 `;
 
-// worker.test();
+for(let i = 0; i < 2; i++) {
+    test(i);
+}
 
-test();
-
-async function test() {
+async function test(i) {
     const node = new NodeService();
-    await node.start();
+    await node.start(i);
 
     const deployedHash = await node.deployContract(contractCode);
-    const callContract = await node.callContract(deployedHash, {
-        method: 'test',
-        params: []
-    });
-    console.log(callContract);
+
+    setInterval(async () => {
+        const times = Math.random();
+        console.time(times.toString());
+        const callContract = await node.callContract(i.toString(), deployedHash, {
+            method: 'test',
+            params: [ i ]
+        });
+
+        console.timeEnd(times.toString());
+        console.log('i:'+i, callContract);
+    }, 30);
 }

@@ -11,63 +11,88 @@ export class NodeService {
     contractService: ContractService;
     ready: boolean = false;
     node: Libp2p;
+    contracts = new Map();
 
     constructor() {
     }
 
-    async start() {
+    async start(id) {
        return new Promise<void>(async (resolve, reject) => {
-        this.node = await Libp2p.create(NodeConfig('/ip4/0.0.0.0/tcp/0'));
+        this.node = await Libp2p.create(await NodeConfig(id, '/ip4/0.0.0.0/tcp/0'));
         this.contractService = new ContractService(this.node);
         this.node.on('peer:discovery', async (peerId) => { 
-            console.log('Discovered:', peerId.toB58String()); 
-            await this.wait(Math.random() * 5000); 
-            this.ready = true;
-            resolve(); 
+            //console.log('Discovered:', peerId.toB58String()); 
+            //await this.wait(2000); 
         });
+        await this.node.loadKeychain();
         await this.node.start();
+
+        console.log(await this.node.keychain.listKeys());
+        this.ready = true;
+        resolve(); 
        });
     }
 
     async deployContract(script: string) {
-        const compiledScript: VMScript = this.contractService.compile(script);
-        const hash = Crypto.hash(compiledScript.code);
-        await this.node.contentRouting.put(hash, uint8ArrayFromString(compiledScript.code));
+        const compiledScript: string = this.contractService.compile(script);
+        const hash = Crypto.hash(compiledScript);
+        let existingContract = null;
+
+        try {
+            existingContract = await this.node.contentRouting.get(hash);
+        } catch(e) { }
+        
+        if(!existingContract) {
+            try {
+                await this.node.contentRouting.put(hash, uint8ArrayFromString(compiledScript));
+            } catch(e) {
+                await this.wait(1000);
+                return await this.deployContract(script);
+            }
+        }
+
         return hash.toString('hex');
     }
 
-    async callContract(hash: string, payload: { method: string, params: string[] }) {
+    async callContract(address: string, hash: string, payload: { method: string, params: string[] }) {
         if(this.ready) {
-            await this.node.pubsub.subscribe(hash);
-            this.node.pubsub.on(hash, (msg) => {
-                console.log('RECEIVED MESSAGE: ', uint8ArrayToString(msg.data));
-            });
-            const message = await this.node.contentRouting.get(Buffer.from(hash, 'hex'));
-            const value = uint8ArrayToString(message.val);
-
-            const contract = this.contractService.compile(value);
-            const contractResponse = this.contractService.callContract(hash, contract, payload);
-
+            const contractValue = await this.setupContract(hash);
+            const contractResponse = await this.contractService.callContract(address, hash, contractValue, payload);
             return contractResponse;
         } else {
             throw new Error('Node not ready, have not found any peers');
         }
     }
 
+    async setupContract(hash: string) {
+        if(!this.contracts.has(hash)) {
+            this.contracts.set(hash, null);
 
-    // deploy(script: string) {
-    //     const hash = Crypto.hash(script);
-    //     let compiledScript: VMScript = this.compile(script);
-    //     this.hashes.set(hash, new (this.vm.run(compiledScript)).default);
-    //     return hash;
-    // }
-    
-    // callContract(payload: { hash: string, params: any, method: string }) {
-    //     const deploymentClass = this.find(payload.hash);
-    //     const methodParams = payload.params ? payload.params : [];
-    //     const response = deploymentClass[payload.method](...methodParams);
-    //     return response;
-    // }
+            const message = await this.node.contentRouting.get(Buffer.from(hash, 'hex'));
+            this.node.pubsub.on(hash, (msg) => {
+                //console.log(msg.from == this.node.peerId.toB58String());
+                //console.log(JSON.parse(uint8ArrayToString(msg.data)));
+            });
+
+            await this.node.pubsub.subscribe(hash);
+
+            console.log('SUBSCRIBED TO', hash);
+            
+            const value = uint8ArrayToString(message.val);
+            this.contracts.set(hash, value);
+
+            return value;
+        } else {
+            const contractCode = this.contracts.get(hash);
+
+            if(!contractCode) {
+                await this.wait(1000);
+                return await this.setupContract(hash);   
+            } else {
+                return contractCode;
+            }
+        }
+    }
     
     async wait(ms: number) {
         return new Promise<void>((resolve, reject) => {
