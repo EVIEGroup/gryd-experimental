@@ -4,13 +4,11 @@ import { NOISE } from '@achingbrain/libp2p-noise';
 import DHT from 'libp2p-kad-dht';
 import MDNS from 'libp2p-mdns';
 import GossipSub from 'libp2p-gossipsub';
-import FloodSub from 'libp2p-floodsub';
 import Bootstrap from 'libp2p-bootstrap';
 import os from 'os';
 import fs from 'fs';
 import { Libp2pOptions } from 'libp2p';
 import { LevelDatastore } from 'datastore-level';
-import { createFromB58String } from 'peer-id';
 
 export async function NodeConfig(id, listen) {
     const dataDir = 'datastore/'+id;
@@ -63,7 +61,7 @@ export async function NodeConfig(id, listen) {
         },
         config: {
             peerDiscovery: {
-                //autoDial: true,
+                autoDial: true,
                 [MDNS.tag]: {
                     interval: 20e3,
                     enabled: true
@@ -77,10 +75,12 @@ export async function NodeConfig(id, listen) {
                     ]
                 },
             },
+            
             dht: {
                 kBucketSize: 20,
                 enabled: true,
                 clientMode: true,
+                
                 // validators: {
                 //   ipns: validator
                 // },
@@ -92,7 +92,7 @@ export async function NodeConfig(id, listen) {
                 enabled: true,
                 emitSelf: false,
                 globalSignaturePolicy: 'StrictSign',
-                messageProcessingConcurrency: 10
+                messageProcessingConcurrency: 20
             },
             nat: {
                 enabled: true,
