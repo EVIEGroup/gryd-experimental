@@ -1,10 +1,7 @@
 import Libp2p from 'libp2p';
 import { ContractService } from "./contract.service";
 import ts from "typescript";
-import asm from "assemblyscript";
 import asc, { CompilerOptions } from "assemblyscript/cli/asc";
-import loader from "@assemblyscript/loader";
-import { WASI } from 'wasi';
 
 import * as metering from 'wasm-metering';
 
@@ -15,12 +12,6 @@ export class WASMContractService extends ContractService {
 
     constructor(protected node: Libp2p) {
         super(node, ts.ModuleKind.None);
-    }
-
-
-    
-    async createVM(address: string, contractHash: string, contract: string) {
-
     }
 
     getWASM(contractHash: string, contract: string) {
