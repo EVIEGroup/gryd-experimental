@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 const contractCode = `
 
 @external("console", "log")
-declare function log(value: string): void;
+declare function log(description: string, value: string): void;
 
 @external("process", "address")
 declare function address(): string;
@@ -16,21 +16,41 @@ declare function numberValue(): i32;
 @external("process", "contractAddress")
 declare function contractAddress(): string;
 
+@external("process", "updateState")
+declare function updateState(key: string, value: string): string;
+
+@external("process", "getState")
+declare function getState(key: string): string;
+
 class Test2 {
 
 }
 
-export default class Test extends Test2 {
-    test(i: i32): i32 {
-        // const adds: string = address();
-        // log(adds);
-
-        const currentState: i32 = numberValue();
-        const newState: i32 = currentState + 1;
-
-        return newState;
-    }
+export default function test(i: i32): string {
+    const adds: string = address();
+    const updatedState = updateState("TEST", "TEST2");
+    // log("UPDATED STATE", updatedState);
+    const theState = getState("TEST");
+    // log("GET STATE", theState);
+    return theState;
 }
+
+// export default class Test extends Test2 {
+//     test(i: i32): i32 {
+//         const adds: string = address();
+//         // log(adds);
+
+//         const updatedState = updateState("TEST", "TEST2");
+//         const theState = getState("TEST");
+//         log("WHAT");
+//         log(theState);
+
+//         const currentState: i32 = numberValue();
+//         const newState: i32 = currentState + 1;
+
+//         return newState;
+//     }
+// }
 `;
 
 let responses: Array<number> = [];

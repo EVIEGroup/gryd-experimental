@@ -2,7 +2,6 @@ import Libp2p from 'libp2p';
 import { ContractService } from "./contract.service";
 import ts from "typescript";
 import asc, { CompilerOptions } from "assemblyscript/cli/asc";
-
 import * as metering from 'wasm-metering';
 
 const AsBind = require("as-bind/dist/as-bind.cjs.js");
@@ -19,12 +18,21 @@ export class WASMContractService extends ContractService {
             return this.modules.get(contractHash);
         }
 
+        asc.options.asyncify = {
+          description: 'Enables Asyncify',
+          type: 'b',
+        };
+
         const moduleBinary = asc.compileString(contract, {
             exportRuntime: true,
             transform: 'as-bind',
             optimize: true,
             optimizeLevel: 10,
-            runtime: "incremental"
+            runtime: "incremental",
+            asyncify: true,
+            runPasses: [
+                'asyncify'
+            ]
         } as CompilerOptions);
 
         const meteredWasm = metering.meterWASM(moduleBinary.binary, {
@@ -35,7 +43,6 @@ export class WASMContractService extends ContractService {
 
         return meteredWasm;
     }
-
 
     async callContract(address: string, contractHash: string, contract: string, payload: { params: string[], method: string }) {
         const wasm = this.getWASM(contractHash, contract);
@@ -56,20 +63,35 @@ export class WASMContractService extends ContractService {
                 address: () => contractHash,
                 contractHash: () => contractHash,
                 value: () => 1,
+                updateState: async (key: string, value: string) => {
+                    // const key = module.exports.__getString(keyPointer);
+                    // const value = module.exports.__getString(valuePointer);
+                    // console.log(key, value);
+                    const result = await this.updateState(contractHash, key, value);
+                    return result;
+                },
+                getState: async (key: string) => {
+                    const res = await this.getState(contractHash, key);
+                    return res;
+                    // const key = module.exports.__getString(keyPointer);
+                    // const value = module.exports.__getString(valuePointer);
+                    // console.log(key, value);
+                    //return res;
+                },
             },
-            console: { log: (value: string) =>  console.log('what', value) }
+            console: {
+                log: (description: string, value: string) =>  console.log(description, value, typeof value) 
+            },
         });
 
-        const defaultClass = (module.exports.default as any);
-        const contractInstance = new defaultClass();
-        const resultPin = contractInstance[payload.method](...payload.params);
-
-        return resultPin;
-        // try {
-        //     const result = module.exports.__getString(resultPin);
-        //     return result;
-        // } catch(e) {
-        //     return resultPin;
-        // }
+        const defaultClass = (module.exports.test as any);
+        // console.log(module.exports);
+        // throw Error('lol');
+        // const contractInstance = new defaultClass();
+        // const resultPointer = contractInstance[payload.method](...payload.params);
+        const resultPointer = await defaultClass(...payload.params);
+        // console.log(module.exports.__getString(resultPointer));
+        console.log(resultPointer);
+        return resultPointer;
     }
 }

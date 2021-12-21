@@ -36,8 +36,9 @@
   "dependencies": {
     "@achingbrain/libp2p-noise": "^5.0.0",
     "@assemblyscript/loader": "^0.19.22",
-    "as-bind": "^0.8.2",
+    "as-bind": "github:upperfoot/as-bind#master",
     "assemblyscript": "^0.19.22",
+    "asyncify-wasm": "^1.2.1",
     "datastore-level": "^7.0.1",
     "isolated-vm": "^4.3.6",
     "libp2p": "^0.35.1",

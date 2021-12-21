@@ -12,7 +12,7 @@ export abstract class ContractService {
         console.log(this.constructor, this.moduleCompilation);
     }
     
-    async updateState(contractHash: string, key: string, value: any) {
+    async updateState(contractHash: string, key: string, value: any): Promise<any> {
         // return 1;
         const stateUpdate = {
             //nonce: uuidv4(),
@@ -21,28 +21,27 @@ export abstract class ContractService {
         }
 
         const encodedValue = uint8ArrayFromString(JSON.stringify(stateUpdate));
+        const contractKey = uint8ArrayFromString(contractHash + key);
         const run = async () => {
             try {
-                await this.node.contentRouting.put(uint8ArrayFromString(contractHash + key), encodedValue);
-                this.node.pubsub.publish(contractHash, encodedValue);
+                await this.node.contentRouting.put(contractKey, encodedValue);
+                await this.node.pubsub.publish(contractHash, encodedValue);
             } catch(e) {
-                run();
+                await run();
             }
         };
 
-        run();
+        await run();
 
         return value;
     }
 
     async getState(contractHash: string, key: string) {
-        // return 1;
         try {
             const value = await this.node.contentRouting.get(uint8ArrayFromString(contractHash + key));
             const decoded = JSON.parse(uint8ArrayToString(value.val));
             const trueValue = decoded.value;
-            
-            return parseInt(trueValue);
+            return trueValue;
         } catch(e) {
             return null;
         }
