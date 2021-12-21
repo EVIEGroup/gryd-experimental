@@ -3,19 +3,21 @@ import { ContractService } from "./contract.service";
 import ts from "typescript";
 import asc, { CompilerOptions } from "assemblyscript/cli/asc";
 import * as metering from 'wasm-metering';
-
+import { v4 as uuidv4 } from 'uuid';
+const fs = require('fs');
 const AsBind = require("as-bind/dist/as-bind.cjs.js");
 
 export class WASMContractService extends ContractService {
-    modules = new Map
+    wasm = new Map;
+    modules = new Map;
 
     constructor(protected node: Libp2p) {
         super(node, ts.ModuleKind.None);
     }
 
     getWASM(contractHash: string, contract: string) {
-        if(this.modules.has(contractHash)) {
-            return this.modules.get(contractHash);
+        if(this.wasm.has(contractHash)) {
+            return this.wasm.get(contractHash);
         }
 
         asc.options.asyncify = {
@@ -38,15 +40,22 @@ export class WASMContractService extends ContractService {
         const meteredWasm = metering.meterWASM(moduleBinary.binary, {
             meterType: 'i32'
         });
+        
+        fs.writeFileSync('contract.wast', moduleBinary.text);
+        // console.log(moduleBinary.text);
+        // throw new Error('lol');
 
-        this.modules.set(contractHash, meteredWasm);
+        this.wasm.set(contractHash, meteredWasm);
 
         return meteredWasm;
     }
 
-    async callContract(address: string, contractHash: string, contract: string, payload: { params: string[], method: string }) {
-        const wasm = this.getWASM(contractHash, contract);
+    async getModule(contractHash, contract) {
+        // if(this.modules.has(contractHash)) {
+        //     return this.modules.get(contractHash);
+        // }
 
+        const wasm = this.getWASM(contractHash, contract);
         const limit = 90000000;
         let gasUsed = 0;
 
@@ -61,22 +70,16 @@ export class WASMContractService extends ContractService {
             },
             process: {
                 address: () => contractHash,
+                random: () => uuidv4(),
                 contractHash: () => contractHash,
                 value: () => 1,
                 updateState: async (key: string, value: string) => {
-                    // const key = module.exports.__getString(keyPointer);
-                    // const value = module.exports.__getString(valuePointer);
-                    // console.log(key, value);
                     const result = await this.updateState(contractHash, key, value);
                     return result;
                 },
                 getState: async (key: string) => {
                     const res = await this.getState(contractHash, key);
                     return res;
-                    // const key = module.exports.__getString(keyPointer);
-                    // const value = module.exports.__getString(valuePointer);
-                    // console.log(key, value);
-                    //return res;
                 },
             },
             console: {
@@ -84,14 +87,24 @@ export class WASMContractService extends ContractService {
             },
         });
 
-        const defaultClass = (module.exports.test as any);
+        this.modules.set(contractHash, module);
+
+        return module;
+    }
+
+    async callContract(address: string, contractHash: string, contract: string, payload: { params: string[], method: string }) {
+        const module = await this.getModule(contractHash, contract);
+        const defaultClass = (module.exports[payload.method] as any);
         // console.log(module.exports);
         // throw Error('lol');
         // const contractInstance = new defaultClass();
         // const resultPointer = contractInstance[payload.method](...payload.params);
         const resultPointer = await defaultClass(...payload.params);
+        // console.log(resultPointer);
+        //console.log(module);
+        //throw new Error('lol');
         // console.log(module.exports.__getString(resultPointer));
-        console.log(resultPointer);
+        // console.log(resultPointer, gasUsed);
         return resultPointer;
     }
 }

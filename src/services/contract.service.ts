@@ -31,7 +31,8 @@ export abstract class ContractService {
             }
         };
 
-        await run();
+        // Do we await here yet?
+        run();
 
         return value;
     }

@@ -10,6 +10,9 @@ declare function log(description: string, value: string): void;
 @external("process", "address")
 declare function address(): string;
 
+@external("process", "random")
+declare function random(): string;
+
 @external("process", "value")
 declare function numberValue(): i32;
 
@@ -26,31 +29,33 @@ class Test2 {
 
 }
 
-export default function test(i: i32): string {
-    const adds: string = address();
-    const updatedState = updateState("TEST", "TEST2");
-    // log("UPDATED STATE", updatedState);
-    const theState = getState("TEST");
-    // log("GET STATE", theState);
-    return theState;
+class Test extends Test2 {
+    test(i: i32): string {
+        const adds: string = address();
+        const randomS: string = random();
+        const updatedState = updateState("TEST", "TEST2");
+        // log("UPDATED STATE", updatedState);
+        const theState = getState("TEST");
+        // log("GET STATE", theState);
+        return randomS;
+    }
+
+    test2(i: i32): string {
+        return "TEST";
+    }
 }
 
-// export default class Test extends Test2 {
-//     test(i: i32): i32 {
-//         const adds: string = address();
-//         // log(adds);
+const testClass = new Test();
 
-//         const updatedState = updateState("TEST", "TEST2");
-//         const theState = getState("TEST");
-//         log("WHAT");
-//         log(theState);
+export function main(i: i32): string {
+    return testClass.test(i);
+}
 
-//         const currentState: i32 = numberValue();
-//         const newState: i32 = currentState + 1;
+export function test(i: i32): string {
+    return testClass.test2(i);
+}
 
-//         return newState;
-//     }
-// }
+
 `;
 
 let responses: Array<number> = [];
@@ -81,6 +86,7 @@ async function test(i) {
         });
         var elapsed = process.hrtime(start)[1] / 1000000;
         responses.push(elapsed);
+        //console.log(callContract);
         // console.log(elapsed);
     }, 0);
 
