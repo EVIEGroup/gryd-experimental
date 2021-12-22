@@ -41,10 +41,6 @@ export class WASMContractService extends ContractService {
         const meteredWasm = metering.meterWASM(moduleBinary.binary, {
             meterType: 'i32'
         });
-        
-        fs.writeFileSync('contract.wast', moduleBinary.text);
-        // console.log(moduleBinary.text);
-        // throw new Error('lol');
 
         this.wasm.set(contractHash, meteredWasm);
 
