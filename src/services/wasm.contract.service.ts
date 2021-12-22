@@ -21,18 +21,12 @@ export class WASMContractService extends ContractService {
             return this.wasm.get(contractHash);
         }
 
-        asc.options.asyncify = {
-          description: 'Enables Asyncify',
-          type: 'b',
-        };
-
         const moduleBinary = asc.compileString(contract, {
             exportRuntime: true,
             transform: 'as-bind',
             optimize: true,
-            optimizeLevel: 10,
+            optimizeLevel: 3,
             runtime: "incremental",
-            asyncify: true,
             runPasses: [
                 'asyncify'
             ]
