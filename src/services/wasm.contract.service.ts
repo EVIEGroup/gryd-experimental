@@ -4,7 +4,7 @@ import ts from "typescript";
 import asc, { CompilerOptions } from "assemblyscript/cli/asc";
 import * as metering from 'wasm-metering';
 import { v4 as uuidv4 } from 'uuid';
-import { globalFunctions } from "../wasm/globals";
+
 const fs = require('fs');
 const AsBind = require("as-bind/dist/as-bind.cjs.js");
 
@@ -21,16 +21,24 @@ export class WASMContractService extends ContractService {
             return this.wasm.get(contractHash);
         }
 
-        const moduleBinary = asc.compileString(contract, {
+        const moduleBinary = asc.compileString({
+            'globals.ts': fs.readFileSync('./wasm/globals.wst').toString(),
+            'json.ts': fs.readFileSync('./wasm/json.wst').toString(),
+            'input.ts': contract,
+        }, {
             exportRuntime: true,
-            transform: 'as-bind',
+            transform: [
+                'as-bind',
+            ],
             optimize: true,
             optimizeLevel: 3,
             runtime: "incremental",
             runPasses: [
                 'asyncify'
-            ]
+            ],
         } as CompilerOptions);
+
+        console.log(moduleBinary.stderr.toString());
 
         const meteredWasm = metering.meterWASM(moduleBinary.binary, {
             meterType: 'i32'
@@ -42,7 +50,7 @@ export class WASMContractService extends ContractService {
     }
 
     async getModule(address, contractHash, contract) {
-        const wasm = this.getWASM(contractHash, globalFunctions + "\n" + contract);
+        const wasm = this.getWASM(contractHash, contract);
         const limit = 90000000;
         let gasUsed = 0;
 

@@ -7,19 +7,45 @@ class Test2 {
 
 }
 
+class JSONSchema {
+    firstName: string
+    lastName: string
+    age: i32
+}
+
 class Test extends Test2 {
     test(i: i32): string {
         const adds: string = address();
         const randomS: string = random();
+        // return randomS;
         const updatedState = updateState("TEST", "TEST2");
         //log("UPDATED STATE", updatedState);
         const theState = getState("TEST");
         // log("GET STATE", theState);
-        return randomS;
+        return theState;
     }
 
     test2(i: i32): string {
-        return "TEST";
+        const data: JSONSchema = {
+            firstName: 'Jairus',
+            lastName: 'Tanaka',
+            age: 14
+        };
+        // const stringified = JSON.stringify(data.firstName);
+        // return stringified;
+
+        // Create encoder
+        
+        const primObj: JSON.Obj = JSON.Value.Object();
+        primObj.set("Str", JSON.from("Hello"));
+        let childObj = JSON.Value.Object();
+        childObj.set("Test", JSON.from("LOL"));
+        primObj.set("Obj", childObj);
+
+        // Or get serialized data as string
+        let jsonString: string = primObj.stringify();
+
+        return jsonString;
     }
 }
 
@@ -33,14 +59,13 @@ export function test(i: i32): string {
     return testClass.test2(i);
 }
 
-
 `;
 
 let responses: Array<number> = [];
 let length = 0;
 
 for(let i = 0; i < 2; i++) {
-    test(i);
+    test(uuidv4());
 }
 
 
@@ -65,7 +90,7 @@ async function test(i) {
             });
             var elapsed = process.hrtime(start)[1] / 1000000;
             responses.push(elapsed);
-            //console.log(callContract);
+            // console.log(JSON.parse(callContract));
             // console.log(elapsed);
         }, 0);
     }
