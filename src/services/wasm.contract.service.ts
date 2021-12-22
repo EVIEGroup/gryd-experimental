@@ -4,6 +4,7 @@ import ts from "typescript";
 import asc, { CompilerOptions } from "assemblyscript/cli/asc";
 import * as metering from 'wasm-metering';
 import { v4 as uuidv4 } from 'uuid';
+import { globalFunctions } from "../wasm/globals";
 const fs = require('fs');
 const AsBind = require("as-bind/dist/as-bind.cjs.js");
 
@@ -50,12 +51,8 @@ export class WASMContractService extends ContractService {
         return meteredWasm;
     }
 
-    async getModule(contractHash, contract) {
-        // if(this.modules.has(contractHash)) {
-        //     return this.modules.get(contractHash);
-        // }
-
-        const wasm = this.getWASM(contractHash, contract);
+    async getModule(address, contractHash, contract) {
+        const wasm = this.getWASM(contractHash, globalFunctions + "\n" + contract);
         const limit = 90000000;
         let gasUsed = 0;
 
@@ -69,7 +66,7 @@ export class WASMContractService extends ContractService {
                 }
             },
             process: {
-                address: () => contractHash,
+                address: () => address,
                 random: () => uuidv4(),
                 contractHash: () => contractHash,
                 value: () => 1,
@@ -87,24 +84,13 @@ export class WASMContractService extends ContractService {
             },
         });
 
-        this.modules.set(contractHash, module);
-
         return module;
     }
 
     async callContract(address: string, contractHash: string, contract: string, payload: { params: string[], method: string }) {
-        const module = await this.getModule(contractHash, contract);
-        const defaultClass = (module.exports[payload.method] as any);
-        // console.log(module.exports);
-        // throw Error('lol');
-        // const contractInstance = new defaultClass();
-        // const resultPointer = contractInstance[payload.method](...payload.params);
-        const resultPointer = await defaultClass(...payload.params);
-        // console.log(resultPointer);
-        //console.log(module);
-        //throw new Error('lol');
-        // console.log(module.exports.__getString(resultPointer));
-        // console.log(resultPointer, gasUsed);
-        return resultPointer;
+        const module = await this.getModule(address, contractHash, contract);
+        const functionName = (module.exports[payload.method] as any);
+        const result = await functionName(...payload.params);
+        return result;
     }
 }

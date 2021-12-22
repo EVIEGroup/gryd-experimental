@@ -3,28 +3,6 @@ import { v4 as uuidv4 } from 'uuid';
 //const blockchain = new BlockchainService();
 //console.log(blockchain.getLastBlock());
 const contractCode = `
-
-@external("console", "log")
-declare function log(description: string, value: string): void;
-
-@external("process", "address")
-declare function address(): string;
-
-@external("process", "random")
-declare function random(): string;
-
-@external("process", "value")
-declare function numberValue(): i32;
-
-@external("process", "contractAddress")
-declare function contractAddress(): string;
-
-@external("process", "updateState")
-declare function updateState(key: string, value: string): string;
-
-@external("process", "getState")
-declare function getState(key: string): string;
-
 class Test2 {
 
 }
@@ -34,7 +12,7 @@ class Test extends Test2 {
         const adds: string = address();
         const randomS: string = random();
         const updatedState = updateState("TEST", "TEST2");
-        // log("UPDATED STATE", updatedState);
+        //log("UPDATED STATE", updatedState);
         const theState = getState("TEST");
         // log("GET STATE", theState);
         return randomS;
@@ -78,28 +56,19 @@ async function test(i) {
 
     console.log(deployedHash);
 
-    setInterval(async () => {
-        const start = process.hrtime();
-        const callContract = await node.callContract(i.toString(), deployedHash, {
-            method: 'test',
-            params: [ i ]
-        });
-        var elapsed = process.hrtime(start)[1] / 1000000;
-        responses.push(elapsed);
-        //console.log(callContract);
-        // console.log(elapsed);
-    }, 0);
-
-
-    setInterval(async () => {
-        const start = process.hrtime();
-        const callContract = await node.callContract(i.toString(), deployedHash, {
-            method: 'test',
-            params: [ i ]
-        });
-        var elapsed = process.hrtime(start)[1] / 1000000;
-        responses.push(elapsed);
-    }, 0);
+    for(let j = 0; j < 1; j++) {
+        setInterval(async () => {
+            const start = process.hrtime();
+            const callContract = await node.callContract(i.toString(), deployedHash, {
+                method: 'test',
+                params: [ i ]
+            });
+            var elapsed = process.hrtime(start)[1] / 1000000;
+            responses.push(elapsed);
+            //console.log(callContract);
+            // console.log(elapsed);
+        }, 0);
+    }
 }
 
 setInterval(() => {
