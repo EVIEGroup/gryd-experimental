@@ -1,6 +1,11 @@
+// import asc from 'assemblyscript/cli/asc';
 import { NodeService } from "./services/node.service";
 import { v4 as uuidv4 } from 'uuid';
-import asc from "assemblyscript/cli/asc";
+
+// Shim hrtime
+if(!process.hrtime) {
+    process.hrtime = require('browser-process-hrtime');
+}
 
 const contractCode = `
 class Test2 {
@@ -45,43 +50,42 @@ export function test(i: i32): string {
 
 `;
 
+test(uuidv4(), null);
+
 let responses: Array<number> = [];
 let length = 0;
 
-test(uuidv4());
-
 let deployedHash = null;
 
-async function test(i) {
+async function test(i, asc) {
     const node = new NodeService();
     await node.start(i, asc, true);
 
-    if(!deployedHash) {
-        deployedHash = await node.deployContract(contractCode);
-    }
+    // if(!deployedHash) {
+    //     deployedHash = await node.deployContract(contractCode);
+    // }
 
+    deployedHash = '3951bbee5bff72191a9e656afc79bb067eb96ab04aea7ba58e6984e63673bf8b';
     console.log(deployedHash);
 
-    for(let j = 0; j < 1; j++) {
-        setInterval(async () => {
-            const start = process.hrtime();
-            const callContract = await node.callContract(i.toString(), deployedHash, {
-                method: 'main',
-                params: [ i ]
-            });
-            var elapsed = process.hrtime(start)[1] / 1000000;
-            responses.push(elapsed);
-            // console.log(JSON.parse(callContract));
-            // console.log(elapsed);
-        }, 0);
-    }
+    const callContract = await node.callContract(i.toString(), deployedHash, {
+        method: 'main',
+        params: [ i ]
+    });
+    // for(let j = 0; j < 1; j++) {
+    //     setInterval(async () => {
+    //         const start = process.hrtime();
+    //         const callContract = await node.callContract(i.toString(), deployedHash, {
+    //             method: 'main',
+    //             params: [ i ]
+    //         });
+    //         var elapsed = process.hrtime(start)[1] / 1000000;
+    //         responses.push(elapsed);
+    //         // console.log(JSON.parse(callContract));
+    //         // console.log(elapsed);
+    //     }, 0);
+    // }
 }
 
-setInterval(() => {
-    const copiedResponses = [...responses];
-    length += copiedResponses.length;
-    if(copiedResponses.length > 0) {
-        console.log(copiedResponses.reduce((a, b) => (a + b)) / copiedResponses.length, length);
-        responses = [];
-    }
-}, 1000)
+// @ts-ignore()
+window.test = test;

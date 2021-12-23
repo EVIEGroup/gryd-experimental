@@ -80,6 +80,8 @@ typings/
 # Dist
 dist/
 
+# Web
+web/
+
 # Stores
-keystore/
-datastore/
+stores/

@@ -1,33 +1,23 @@
-import TCP from 'libp2p-tcp';
+import WebRTCStar from 'libp2p-webrtc-star';
 import MPLEX from 'libp2p-mplex';
 import { NOISE } from '@achingbrain/libp2p-noise';
 import DHT from 'libp2p-kad-dht';
-import MDNS from 'libp2p-mdns';
 import GossipSub from 'libp2p-gossipsub';
 import Bootstrap from 'libp2p-bootstrap';
-import os from 'os';
-import fs from 'fs';
 import { Libp2pOptions } from 'libp2p';
 import { LevelDatastore } from 'datastore-level';
+import wrtc from 'wrtc';
 
 export async function NodeConfig(id, listen) {
-    const dataDir = 'datastore/'+id;
-    
-    if (!fs.existsSync(dataDir)){
-        fs.mkdirSync(dataDir, { recursive: true });
-    }
-
+    const dataDir = 'stores/data'+id;
     const datastore = new LevelDatastore(dataDir);
     await datastore.open();
 
-    const keyDir = 'keystore/'+id;
-
-    if (!fs.existsSync(keyDir)){
-        fs.mkdirSync(keyDir, { recursive: true });
-    }
-
+    const keyDir = 'stores/key'+id;
     const keystore = new LevelDatastore(keyDir);
     await keystore.open();
+
+    const transportKey = WebRTCStar.prototype[Symbol.toStringTag]
 
     return {
         datastore: datastore,
@@ -44,7 +34,8 @@ export async function NodeConfig(id, listen) {
         },
         modules: {
             transport: [
-                TCP,
+                //TCP,
+                WebRTCStar,
             ],
             streamMuxer: [
                 MPLEX
@@ -53,26 +44,38 @@ export async function NodeConfig(id, listen) {
                 NOISE
             ],
             peerDiscovery: [
-                MDNS,
+                //MDNS,
                 Bootstrap,
             ],
             dht: DHT,
             pubsub: GossipSub
         },
         config: {
+            transport: {
+                [transportKey]: {
+                    wrtc,
+                }
+            },
             peerDiscovery: {
                 autoDial: true,
-                [MDNS.tag]: {
-                    interval: 20e3,
-                    enabled: true
+                // [MDNS.tag]: {
+                //     interval: 20e3,
+                //     enabled: true
+                // },
+                [WebRTCStar.tag]: {
+                  enabled: true
                 },
                 // Optimization
                 // Requiring bootstrap inline in components/libp2p to reduce the cli execution time
                 [Bootstrap.tag]: {
                     enabled: false,
-                    list: [
-                    //'/ip4/127.0.0.1/tcp/30001/p2p/QmX3pb5JkthsJQmmzXgqxKUonbMtmEqt3XqUKe68ihjcCm',
-                    ]
+                    // list: [
+                    //   '/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN',
+                    //   '/dnsaddr/bootstrap.libp2p.io/p2p/QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb',
+                    //   '/dnsaddr/bootstrap.libp2p.io/p2p/QmZa1sAxajnQjVM8WjWXoMbmPd7NsWhfKsPkErzpm9wGkp',
+                    //   '/dnsaddr/bootstrap.libp2p.io/p2p/QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa',
+                    //   '/dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt'
+                    // ]
                 },
             },
             
@@ -92,11 +95,12 @@ export async function NodeConfig(id, listen) {
                 enabled: true,
                 emitSelf: false,
                 globalSignaturePolicy: 'StrictSign',
-                messageProcessingConcurrency: 20
+                messageProcessingConcurrency: 20,
+                // canRelayMessage: true
             },
             nat: {
                 enabled: true,
-                description: `decentranet@${os.hostname()}`
+                description: `decentranet` //@${os.hostname()}`
             }
         },
         metrics: {

@@ -1,29 +1,23 @@
-import Libp2p from 'libp2p';
 import { ContractService } from "./contract.service";
-import ts from "typescript";
-import asc, { CompilerOptions } from "assemblyscript/cli/asc";
 import * as metering from 'wasm-metering';
 import { v4 as uuidv4 } from 'uuid';
+import { globalWASM } from "../wasm/globals";
+import { jsonWASM } from "../wasm/json";
 
-const fs = require('fs');
 const AsBind = require("as-bind/dist/as-bind.cjs.js");
 
 export class WASMContractService extends ContractService {
     wasm = new Map;
     modules = new Map;
 
-    constructor(protected node: Libp2p) {
-        super(node, ts.ModuleKind.None);
+    constructor(node, protected asc) {
+        super(node);
     }
 
     getWASM(contractHash: string, contract: string) {
-        if(this.wasm.has(contractHash)) {
-            return this.wasm.get(contractHash);
-        }
-
-        const moduleBinary = asc.compileString({
-            'globals.ts': fs.readFileSync('./wasm/globals.wst').toString(),
-            'json.ts': fs.readFileSync('./wasm/json.wst').toString(),
+        const moduleBinary = this.asc.compileString({
+            'globals.ts': globalWASM,
+            'json.ts': jsonWASM,
             'input.ts': contract,
         }, {
             exportRuntime: true,
@@ -36,7 +30,7 @@ export class WASMContractService extends ContractService {
             runPasses: [
                 'asyncify'
             ],
-        } as CompilerOptions);
+        } as any);
 
         console.log(moduleBinary.stderr.toString());
 
@@ -44,13 +38,10 @@ export class WASMContractService extends ContractService {
             meterType: 'i32'
         });
 
-        this.wasm.set(contractHash, meteredWasm);
-
         return meteredWasm;
     }
 
-    async getModule(address, contractHash, contract) {
-        const wasm = this.getWASM(contractHash, contract);
+    async getModule(address, contractHash, wasm) {
         const limit = 90000000;
         let gasUsed = 0;
 
@@ -85,8 +76,8 @@ export class WASMContractService extends ContractService {
         return module;
     }
 
-    async callContract(address: string, contractHash: string, contract: string, payload: { params: string[], method: string }) {
-        const module = await this.getModule(address, contractHash, contract);
+    async callContract(address: string, contractHash: string, wasm: string, payload: { params: string[], method: string }) {
+        const module = await this.getModule(address, contractHash, wasm);
         const functionName = (module.exports[payload.method] as any);
         const result = await functionName(...payload.params);
         return result;
