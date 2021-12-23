@@ -7,69 +7,21 @@ if(!process.hrtime) {
     process.hrtime = require('browser-process-hrtime');
 }
 
-const contractCode = `
-class Test2 {
-
-}
-
-class Test extends Test2 {
-    test(i: i32): string {
-        const adds: string = address();
-        const randomS: string = random();
-        // return randomS;
-        const updatedState = updateState("TEST", "TEST2");
-        //log("UPDATED STATE", updatedState);
-        const theState = getState("TEST");
-        // log("GET STATE", theState);
-        return theState;
-    }
-
-    test2(i: i32): string {
-        const primObj: JSON.Obj = JSON.Value.Object();
-        primObj.set("Str", JSON.from("Hello"));
-        let childObj = JSON.Value.Object();
-        childObj.set("Test", JSON.from(address()));
-        primObj.set("Obj", childObj);
-
-        // Or get serialized data as string
-        let jsonString: string = primObj.stringify();
-
-        return jsonString;
-    }
-}
-
-const testClass = new Test();
-
-export function main(i: i32): string {
-    return testClass.test(i);
-}
-
-export function test(i: i32): string {
-    return testClass.test2(i);
-}
-
-`;
-
-test(uuidv4(), null);
+test('', null);
 
 let responses: Array<number> = [];
 let length = 0;
 
-let deployedHash = null;
+let deployedHash = '56a9da545821b30ace569309da10082c2ad738f7b3d6a17b12b45480a6c59cce';
 
 async function test(i, asc) {
     const node = new NodeService();
     await node.start(i, asc, true);
 
-    // if(!deployedHash) {
-    //     deployedHash = await node.deployContract(contractCode);
-    // }
-
-    deployedHash = '3951bbee5bff72191a9e656afc79bb067eb96ab04aea7ba58e6984e63673bf8b';
     console.log(deployedHash);
 
     const callContract = await node.callContract(i.toString(), deployedHash, {
-        method: 'main',
+        method: 'test',
         params: [ i ]
     });
     // for(let j = 0; j < 1; j++) {
