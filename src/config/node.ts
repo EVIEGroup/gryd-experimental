@@ -1,4 +1,6 @@
 import WebRTCStar from 'libp2p-webrtc-star';
+import WebSocket from 'libp2p-websockets';
+import filters from 'libp2p-websockets/src/filters'
 import MPLEX from 'libp2p-mplex';
 import { NOISE } from '@achingbrain/libp2p-noise';
 import DHT from 'libp2p-kad-dht';
@@ -7,8 +9,21 @@ import Bootstrap from 'libp2p-bootstrap';
 import { Libp2pOptions } from 'libp2p';
 import { LevelDatastore } from 'datastore-level';
 import wrtc from 'wrtc';
+import { Multiaddr } from 'multiaddr';
+import PeerId from 'peer-id';
 
-export async function NodeConfig(id, listen) {
+export async function NodeConfig(id, isClient) {
+    const listen = [
+        // Add the signaling server multiaddr
+        // '/dns4/star.thedisco.zone/tcp/9090/wss/p2p-webrtc-star',
+        // '/dns6/star.thedisco.zone/tcp/9090/wss/p2p-webrtc-star',
+        //'/dns4/web3-star.herokuapp.com/tcp/443/wss/p2p-webrtc-star/p2p/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm',
+    ];
+
+    //if(!isClient) {
+        listen.push('/ip4/0.0.0.0/tcp/13579/wss/p2p-webrtc-star');
+    //}
+
     const dataDir = 'stores/data'+id;
     const datastore = new LevelDatastore(dataDir);
     await datastore.open();
@@ -17,12 +32,16 @@ export async function NodeConfig(id, listen) {
     const keystore = new LevelDatastore(keyDir);
     await keystore.open();
 
-    const transportKey = WebRTCStar.prototype[Symbol.toStringTag]
+    const wRTCTransportKey = WebRTCStar.prototype[Symbol.toStringTag];
+    const wsTransportKey = WebSocket.prototype[Symbol.toStringTag];
+
+    // const boostrap1 = new Multiaddr('/dns6/ipfs.thedisco.zone/tcp/4430/wss/p2p/12D3KooWChhhfGdB9GJy1GbhghAAKCUR99oCymMEVS4eUcEy67nt');
+    // const boostrap2 = new Multiaddr('/dns4/ipfs.thedisco.zone/tcp/4430/wss/p2p/12D3KooWChhhfGdB9GJy1GbhghAAKCUR99oCymMEVS4eUcEy67nt');
 
     return {
-        datastore: datastore,
+        // datastore: datastore,
         addresses: {
-            listen: [listen]
+            listen: listen
         },
         keychain: {
             datastore: keystore,
@@ -35,6 +54,7 @@ export async function NodeConfig(id, listen) {
         modules: {
             transport: [
                 //TCP,
+                WebSocket,
                 WebRTCStar,
             ],
             streamMuxer: [
@@ -52,8 +72,13 @@ export async function NodeConfig(id, listen) {
         },
         config: {
             transport: {
-                [transportKey]: {
+                [wRTCTransportKey]: {
                     wrtc,
+                },
+                [wsTransportKey]: {
+                  // by default websockets do not allow localhost dials
+                  // let's enable it for testing purposes in this example
+                  filter: filters.all
                 }
             },
             peerDiscovery: {
@@ -69,42 +94,68 @@ export async function NodeConfig(id, listen) {
                 // Requiring bootstrap inline in components/libp2p to reduce the cli execution time
                 [Bootstrap.tag]: {
                     enabled: false,
-                    // list: [
-                    //   '/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN',
-                    //   '/dnsaddr/bootstrap.libp2p.io/p2p/QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb',
-                    //   '/dnsaddr/bootstrap.libp2p.io/p2p/QmZa1sAxajnQjVM8WjWXoMbmPd7NsWhfKsPkErzpm9wGkp',
-                    //   '/dnsaddr/bootstrap.libp2p.io/p2p/QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa',
-                    //   '/dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt'
-                    // ]
+                    list: [
+                        // '/dns6/ipfs.thedisco.zone/tcp/4430/wss/p2p/12D3KooWChhhfGdB9GJy1GbhghAAKCUR99oCymMEVS4eUcEy67nt',
+                        // '/dns4/ipfs.thedisco.zone/tcp/4430/wss/p2p/12D3KooWChhhfGdB9GJy1GbhghAAKCUR99oCymMEVS4eUcEy67nt'
+                    ]
                 },
             },
-            
             dht: {
-                kBucketSize: 20,
                 enabled: true,
                 clientMode: true,
-                
+                kBucketSize: 20,
+                // bootstrapPeers: [
+                //     {
+                //         id: PeerId.createFromB58String('12D3KooWChhhfGdB9GJy1GbhghAAKCUR99oCymMEVS4eUcEy67nt'),
+                //         multiaddrs: [boostrap1]
+                //     },
+                //     {
+                //         id: PeerId.createFromB58String('12D3KooWChhhfGdB9GJy1GbhghAAKCUR99oCymMEVS4eUcEy67nt'),
+                //         multiaddrs: [boostrap2]
+                //     },
+                // ]
+                // randomWalk: {
+                //     enabled: true,
+                // },
                 // validators: {
-                //   ipns: validator
+                //     hello: {
+                //       func: async (key, publicKey) => {
+                //         console.log(key, publicKey);
+                //       },
+                //       sign: false
+                //     }
                 // },
                 // selectors: {
-                //   ipns: selector
+                //     hello: (key, records) => {
+                //         console.log(key, records);
+                //         return 0;
+                //     },
                 // }
+            },
+            relay: {            // Circuit Relay options (this config is part of libp2p core configurations)
+                enabled: true,           // Allows you to dial and accept relayed connections. Does not make you a relay.
+                hop: {
+                  enabled: true,         // Allows you to be a relay for other peers
+                  active: true           // You will attempt to dial destination peers if you are not connected to them
+                },
             },
             pubsub: {
                 enabled: true,
-                emitSelf: false,
-                globalSignaturePolicy: 'StrictSign',
-                messageProcessingConcurrency: 20,
+                // emitSelf: false,
+                // globalSignaturePolicy: SignaturePolicy.StrictSign,
+                // messageProcessingConcurrency: 20,
                 // canRelayMessage: true
             },
             nat: {
                 enabled: true,
+                pmp: {
+                    enabled: true,
+                },
                 description: `decentranet` //@${os.hostname()}`
-            }
+            },
         },
         metrics: {
-            enabled: false
+            enabled: true
         },
         peerStore: {
             persistence: true

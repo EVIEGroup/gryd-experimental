@@ -5,6 +5,9 @@ import { toString as uint8ArrayToString } from 'uint8arrays/to-string';
 import { Crypto } from '../helpers/crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { WASMContractService } from './wasm.contract.service';
+import { Connection } from 'libp2p/src/connection-manager';
+import { getCleanMultiaddr } from 'libp2p/src/identify';
+import { CID } from 'multiformats/cid'
 
 export class NodeService {
     contractService: WASMContractService;
@@ -12,24 +15,35 @@ export class NodeService {
     node: Libp2p;
     contracts = new Map();
     isClient: boolean = false;
-    asc: any = null;
-
+    
     constructor() {
+        
     }
 
-    async start(id, asc, isClient) {
-       this.asc = asc;
+    async start(id, isClient) {
        this.isClient = isClient;
        return new Promise<void>(async (resolve, reject) => {
-        this.node = await Libp2p.create(await NodeConfig(id, '/ip4/127.0.0.1/tcp/13579/wss/p2p-webrtc-star'));
-        this.contractService = new WASMContractService(this.node, asc); // full ? new IVMContractService(this.node) : new VM2ContractService(this.node);
-        this.node.on('peer:discovery', async (peerId) => {
-            console.log('Discovered:', peerId.toB58String()); 
-            if(!this.ready) {
-                this.ready = true;
-                resolve();
+        this.node = await Libp2p.create(await NodeConfig(id, isClient));
+        this.contractService = new WASMContractService(this.node);
+        this.node.connectionManager.on('peer:connect', async (connection: Connection) => {
+            try {
+                // console.log('\n \n Connection established to:', connection.remotePeer.toB58String());
+                if(!this.ready) {
+                    const interval = setInterval(() => {
+                        if(this.node.isStarted() && this.node._dht.isStarted()) {
+                            clearInterval(interval);
+                            this.ready = true;
+                            resolve();
+                            console.log('READY');
+                        } else {
+                            console.log('NOT READY');
+                        }
+                    }, 100);
+                }
+            } catch(e) {
+                
             }
-        });
+        })
         await this.node.loadKeychain();
         await this.node.start();
 
@@ -43,15 +57,25 @@ export class NodeService {
         let existingContract = null;
 
         try {
-            existingContract = await this.node.contentRouting.get(hash);
+            //existingContract = await this.node.contentRouting.get(hash);
+            //console.log(existingContract);
         } catch(e) { }
         
         if(!existingContract) {
             try {
                 const wasm = this.contractService.getWASM(hash.toString('hex'), script);
-                await this.node.contentRouting.put(hash, wasm);
+                // await this.node.contentRouting.provide(CID.createV0(new MultihashDi));
+                await this.node.contentRouting.put(hash, wasm, {
+                    minPeers: 1
+                });
+
             } catch(e) {
+                
+                //console.log(Object.values(this.node.contentRouting.dht._wan._peerRouting._routingTable as any));
+                // console.log(this.node.contentRouting.dht._wan);
+                // console.log(e, this.node.contentRouting.dht);
                 await this.wait(1000);
+                console.log(e);
                 return await this.deployContract(script);
             }
         }
@@ -62,11 +86,7 @@ export class NodeService {
     async callContract(address: string, hash: string, payload: { method: string, params: string[] }) {
         if(this.ready) {
             const contractValue = await this.setupContract(hash);
-            if(this.asc) {
-                return await this.contractService.callContract(address, hash, contractValue, payload);
-            } else {
-                return null;
-            }
+            return await this.contractService.callContract(address, hash, contractValue, payload);
         } else {
             throw new Error('Node not ready, have not found any peers');
         }
@@ -85,7 +105,7 @@ export class NodeService {
     
                 await this.node.pubsub.subscribe(hash);
     
-                // console.log('SUBSCRIBED TO', hash);
+                console.log('SUBSCRIBED TO', hash);
                 const value = message.val;
                 this.contracts.set(hash, value);
 
