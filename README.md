@@ -1,4 +1,4 @@
-# decentranet
+# Gryd
  
 ## Setup
 
