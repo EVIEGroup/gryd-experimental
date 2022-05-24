@@ -23,32 +23,36 @@ export class NodeService {
     async start(id, isClient) {
        this.isClient = isClient;
        return new Promise<void>(async (resolve, reject) => {
-        this.node = await Libp2p.create(await NodeConfig(id, isClient));
-        this.contractService = new WASMContractService(this.node);
-        this.node.connectionManager.on('peer:connect', async (connection: Connection) => {
-            try {
-                // console.log('\n \n Connection established to:', connection.remotePeer.toB58String());
-                if(!this.ready) {
-                    const interval = setInterval(() => {
-                        if(this.node.isStarted() && this.node._dht.isStarted()) {
-                            clearInterval(interval);
-                            this.ready = true;
-                            resolve();
-                            console.log('READY');
-                        } else {
-                            console.log('NOT READY');
+           try {
+                this.node = await Libp2p.create(await NodeConfig(id, isClient));
+                this.contractService = new WASMContractService(this.node);
+                this.node.connectionManager.on('peer:connect', async (connection: Connection) => {
+                    try {
+                        // console.log('\n \n Connection established to:', connection.remotePeer.toB58String());
+                        if(!this.ready) {
+                            const interval = setInterval(() => {
+                                if(this.node.isStarted() && this.node._dht.isStarted()) {
+                                    clearInterval(interval);
+                                    this.ready = true;
+                                    resolve();
+                                    console.log('READY');
+                                } else {
+                                    console.log('NOT READY');
+                                }
+                            }, 100);
                         }
-                    }, 100);
-                }
-            } catch(e) {
-                
-            }
-        })
-        await this.node.loadKeychain();
-        await this.node.start();
+                    } catch(e) {
+                        
+                    }
+                })
+                await this.node.loadKeychain();
+                await this.node.start();
 
-        console.log(await this.node.keychain.listKeys());
-        // resolve(); 
+                console.log(await this.node.keychain.listKeys());
+                // resolve(); 
+            } catch(e) {
+                reject(e);
+            }
        });
     }
 

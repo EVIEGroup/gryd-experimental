@@ -39,7 +39,7 @@ export async function NodeConfig(id, isClient) {
     // const boostrap2 = new Multiaddr('/dns4/ipfs.thedisco.zone/tcp/4430/wss/p2p/12D3KooWChhhfGdB9GJy1GbhghAAKCUR99oCymMEVS4eUcEy67nt');
 
     return {
-        // datastore: datastore,
+        datastore: datastore,
         addresses: {
             listen: listen
         },

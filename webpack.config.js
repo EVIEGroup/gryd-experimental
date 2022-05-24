@@ -7,7 +7,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
     // devtool: 'inline-source-map',
     devServer: {
-        https: false,
+        https: true,
         allowedHosts: 'all',
     },
     target: ["web"],
