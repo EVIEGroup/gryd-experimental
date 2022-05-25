@@ -45,7 +45,7 @@
     "@achingbrain/libp2p-noise": "^5.0.0",
     "@assemblyscript/loader": "^0.19.22",
     "as-bind": "github:upperfoot/as-bind#master",
-    "assemblyscript": "^0.19.22",
+    "assemblyscript": "github:upperfoot/assemblyscript#develop",
     "assert-browserify": "^2.0.0",
     "browser-process-hrtime": "^1.0.0",
     "browserify-fs": "^1.0.0",
