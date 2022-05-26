@@ -151,7 +151,7 @@ export async function NodeConfig(id, isClient) {
                 pmp: {
                     enabled: true,
                 },
-                description: `decentranet` //@${os.hostname()}`
+                description: `gryd` //@${os.hostname()}`
             },
         },
         metrics: {
