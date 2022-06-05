@@ -6,6 +6,11 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
     // devtool: 'inline-source-map',
+    watchOptions: {
+       aggregateTimeout: 1000,
+       poll: 1000,
+       ignored: /node_modules/,
+    },
     devServer: {
         host: '0.0.0.0',//your ip address
         https: false,
@@ -31,7 +36,10 @@ module.exports = {
                 loader: 'ts-loader',
                 exclude: /node_modules/
             }
-        ]
+        ],
+    },
+    stats: {
+        errorDetails: true
     },
     resolve: {
         extensions: [ '.ts', '.tsx', '.js' ],
@@ -55,9 +63,7 @@ module.exports = {
             Buffer: ["buffer", "Buffer"],
             process: 'process/browser',
         }),
-        new HtmlWebpackPlugin({
-            
-        }),
+        new HtmlWebpackPlugin({}),
         new webpack.DefinePlugin({
           BUNDLE_VERSION: JSON.stringify(require("./package.json").version),
           BUNDLE_LIBRARY: (() => {

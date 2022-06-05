@@ -12,6 +12,7 @@ import wrtc from 'wrtc';
 import { Multiaddr } from 'multiaddr';
 import PeerId from 'peer-id';
 
+
 export async function NodeConfig(id, isClient) {
     const listen = [
         // Add the signaling server multiaddr
@@ -21,7 +22,7 @@ export async function NodeConfig(id, isClient) {
     ];
 
     //if(!isClient) {
-        listen.push('/ip4/0.0.0.0/tcp/13579/wss/p2p-webrtc-star');
+        listen.push('/ip4/127.0.0.1/tcp/13579/wss/p2p-webrtc-star');
     //}
 
     const dataDir = 'stores/data'+id;

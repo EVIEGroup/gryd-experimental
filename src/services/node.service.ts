@@ -17,7 +17,7 @@ export class NodeService {
     isClient: boolean = false;
     
     constructor() {
-        
+        console.log(this)
     }
 
     async start(id, isClient) {

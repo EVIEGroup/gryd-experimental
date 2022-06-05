@@ -98,7 +98,7 @@ class Test extends Test2 {
         const adds: string = address();
         const randomS: string = random();
         // return randomS;
-        const updatedState = updateState("TEST", "TEST2");
+        const updatedState = updateState("TEST", i.toString());
         //log("UPDATED STATE", updatedState);
         const theState = getState("TEST");
         // log("GET STATE", theState);

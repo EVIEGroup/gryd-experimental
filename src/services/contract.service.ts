@@ -6,7 +6,7 @@ import Libp2p from 'libp2p';
 
 export abstract class ContractService {
     constructor(protected node: Libp2p) {
-        console.log(this.constructor);
+        
     }
     
     async updateState(contractHash: string, key: string, value: any): Promise<any> {
