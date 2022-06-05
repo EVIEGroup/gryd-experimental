@@ -12,7 +12,7 @@
     "dev": "tsc-watch --onSuccess \"npm run start\"",
     "web": "webpack serve --progress --color",
     "web:build": "webpack",
-    "signal": "webrtc-star --port=13579 --host=127.0.0.1"
+    "signal": "webrtc-star --port=13579 --host=0.0.0.0"
   },
   "repository": {
     "type": "git",
