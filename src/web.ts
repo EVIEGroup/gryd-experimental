@@ -5,6 +5,8 @@ if(!process.hrtime) {
     process.hrtime = require('browser-process-hrtime');
 }
 
+console.log(process)
+
 
 const contractCode = `
 class Test2 {

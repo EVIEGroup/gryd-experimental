@@ -60,12 +60,17 @@ export class WASMContractService extends ContractService {
     }
 
     async getModule(address, contractHash, wasm) {
+        if(this.modules.has(contractHash)) {
+            //return this.modules.get(contractHash);
+        }
+
         const limit = 90000000;
         let gasUsed = 0;
 
         const module = await AsBind.instantiate(wasm, {
             'metering': {
                 'usegas': (gas) => {
+                    //@Todo set gas based on instantiating call
                     gasUsed += gas;
                     if (gasUsed > limit) {
                         throw new Error('out of gas!')
@@ -90,6 +95,8 @@ export class WASMContractService extends ContractService {
                 log: (description: string, value: string) =>  console.log(description, value, typeof value) 
             },
         });
+
+        this.modules.set(contractHash, module);
 
         return module;
     }

@@ -60,8 +60,6 @@ async function test(i) {
         deployedHash = await node.deployContract(contractCode);
     }
 
-    console.log(deployedHash);
-
     for(let j = 0; j < 1; j++) {
         setInterval(async () => {
             const start = process.hrtime();

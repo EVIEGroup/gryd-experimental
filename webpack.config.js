@@ -44,15 +44,16 @@ module.exports = {
     resolve: {
         extensions: [ '.ts', '.tsx', '.js' ],
         fallback: {
-          "fs": require.resolve('browserify-fs'),
-          "path": require.resolve('path-browserify'),
-          "os": require.resolve('os-browserify'),
-          "assert": require.resolve('assert-browserify'),
-          "url": require.resolve('url'),
+          //"os": require.resolve('os-browserify'),
+          //"assert": require.resolve('assert-browserify'),
+          //"url": require.resolve('url'),
+          //"util": require.resolve("util/"),
+          //"process": require.resolve("process/"),
+            
           "crypto": require.resolve('crypto-browserify'),
           "stream": require.resolve('stream-browserify'),
-          "util": require.resolve("util/"),
-          "process": require.resolve("process/"),
+          "fs": require.resolve('browserify-fs'),
+          "path": require.resolve('path-browserify'),
           "buffer": require.resolve('buffer'),
         },
         alias: {

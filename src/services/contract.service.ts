@@ -17,7 +17,6 @@ export abstract class ContractService {
 
     async updateState(contractHash: string, key: string, value: any): Promise<any> {
         const currentState = await this.currentState(contractHash);
-        console.log(value);
         currentState.set(key, value);
         return value;
     }
