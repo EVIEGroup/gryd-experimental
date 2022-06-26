@@ -53,6 +53,7 @@ module.exports = {
           "stream": require.resolve('stream-browserify'),
           "util": require.resolve("util/"),
           "process": require.resolve("process/"),
+          "buffer": require.resolve('buffer'),
         },
         alias: {
             process: 'process/browser',

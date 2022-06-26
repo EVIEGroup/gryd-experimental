@@ -54,7 +54,7 @@ let deployedHash = null;
 
 async function test(i) {
     const node = new NodeService();
-    await node.start(i, false);
+    await node.start(i);
 
     if(!deployedHash) {
         deployedHash = await node.deployContract(contractCode);

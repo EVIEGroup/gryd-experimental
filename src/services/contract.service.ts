@@ -1,47 +1,29 @@
-
-import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string';
-import { toString as uint8ArrayToString } from 'uint8arrays/to-string';
-
-import Libp2p from 'libp2p';
-
 export abstract class ContractService {
-    constructor(protected node: Libp2p) {
+    globalState = new Map<string, Map<string, any>>();
+    
+    constructor() {
         
     }
     
-    async updateState(contractHash: string, key: string, value: any): Promise<any> {
-        // return 1;
-        const stateUpdate = {
-            //nonce: uuidv4(),
-            key: key,
-            value: value,
+    async currentState(contractHash): Promise<Map<string, any>> {
+        if(!this.globalState.has(contractHash)) {
+            const contractState = new Map();
+            this.globalState.set(contractHash, contractState);
+            return contractState;
+        } else {
+            return this.globalState.get(contractHash);
         }
+    }
 
-        const encodedValue = uint8ArrayFromString(JSON.stringify(stateUpdate));
-        const contractKey = uint8ArrayFromString(contractHash + key);
-        const run = async () => {
-            try {
-                await this.node.contentRouting.put(contractKey, encodedValue);
-                await this.node.pubsub.publish(contractHash, encodedValue);
-            } catch(e) {
-                await run();
-            }
-        };
-
-        // Do we await here yet?
-        run();
-
+    async updateState(contractHash: string, key: string, value: any): Promise<any> {
+        const currentState = await this.currentState(contractHash);
+        console.log(value);
+        currentState.set(key, value);
         return value;
     }
 
     async getState(contractHash: string, key: string) {
-        try {
-            const value = await this.node.contentRouting.get(uint8ArrayFromString(contractHash + key));
-            const decoded = JSON.parse(uint8ArrayToString(value.val));
-            const trueValue = decoded.value;
-            return trueValue;
-        } catch(e) {
-            return null;
-        }
+        const currentState = await this.currentState(contractHash);
+        return currentState.get(key);
     }
 }

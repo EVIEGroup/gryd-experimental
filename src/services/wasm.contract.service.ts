@@ -12,8 +12,8 @@ export class WASMContractService extends ContractService {
     wasm = new Map;
     modules = new Map;
 
-    constructor(node) {
-        super(node);
+    constructor() {
+        super();
     }
 
     /** Compiles WASM */
@@ -51,6 +51,7 @@ export class WASMContractService extends ContractService {
 
     getWASM(contractHash: string, contractSource: string) {
         const moduleBinary = this.compileString(contractSource);
+        console.log(moduleBinary.stderr.toString())
         const meteredWasm = metering.meterWASM(moduleBinary.binary, {
             meterType: 'i32'
         });
