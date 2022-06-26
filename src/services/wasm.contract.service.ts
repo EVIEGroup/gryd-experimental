@@ -52,11 +52,7 @@ export class WASMContractService extends ContractService {
     getWASM(contractHash: string, contractSource: string) {
         const moduleBinary = this.compileString(contractSource);
         console.log(moduleBinary.stderr.toString())
-        const meteredWasm = metering.meterWASM(moduleBinary.binary, {
-            meterType: 'i32'
-        });
-
-        return meteredWasm;
+        return moduleBinary.binary;
     }
 
     async getModule(address, contractHash, wasm) {
@@ -66,8 +62,12 @@ export class WASMContractService extends ContractService {
 
         const limit = 90000000;
         let gasUsed = 0;
+        
+        const meteredWasm = metering.meterWASM(wasm, {
+            meterType: 'i32'
+        });
 
-        const module = await AsBind.instantiate(wasm, {
+        const module = await AsBind.instantiate(meteredWasm, {
             'metering': {
                 'usegas': (gas) => {
                     //@Todo set gas based on instantiating call
@@ -95,6 +95,7 @@ export class WASMContractService extends ContractService {
                 log: (description: string, value: string) =>  console.log(description, value, typeof value) 
             },
         });
+
 
         this.modules.set(contractHash, module);
 
