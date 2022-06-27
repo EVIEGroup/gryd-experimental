@@ -73,18 +73,25 @@ async function test(i) {
 
     const deployedHash = await node.deployContract(contractCode);
 
+    const responses = [];
     console.log('HASH', deployedHash);
 
-
-    for(let i2 = 0; i2 < 10; i2++) {
+    for(let i2 = 0; i2 < 1000; i2++) {
+        const start = process.hrtime();
         const callContract2 = await node.callContract(i.toString(), deployedHash, {
             method: 'main',
             params: [ i ]
         });
         
-        console.log('Contract Call', callContract2);
+        // console.log('Contract Call', callContract2);
+
+        var elapsed = process.hrtime(start)[1] / 1000000;
+        responses.push(elapsed);
     }
 
+    console.log(node);
+
+    console.log(responses.reduce((a, b) => (a + b)) / responses.length, responses.length);
 
     return;
 }

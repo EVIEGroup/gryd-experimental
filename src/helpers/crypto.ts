@@ -1,4 +1,3 @@
-import crypto from 'crypto';
 import { ready, crypto_generichash } from 'libsodium-wrappers';
 
 export class Crypto {
