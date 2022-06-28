@@ -1,6 +1,6 @@
 import { NodeService } from "./services/node.service";
 import { v4 as uuidv4 } from 'uuid';
-import asc from "assemblyscript/cli/asc";
+import signalhubServer from 'signalhub/server';
 
 const contractCode = `
 class Test2 {
@@ -56,7 +56,10 @@ test(uuidv4());
 let deployedHash = null;
 
 async function test(i) {
-    const node = new NodeService();
+    const node = new NodeService({
+        server: true,
+        signalHubServer: signalhubServer(),
+    });
     await node.start(i);
 
     if(!deployedHash) {
