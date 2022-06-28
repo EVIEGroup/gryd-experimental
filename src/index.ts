@@ -29,7 +29,10 @@ class Test extends Test2 {
         // Or get serialized data as string
         let jsonString: string = primObj.stringify();
 
-        return jsonString;
+        const strings = JSON.parse('{"id":"0001","type":"donut","name":"Cake","ppu":0.55,"batters":{"batter":[{"id":"1001","type":"Regular"},{"id":"1002","type":"Chocolate"},{"id":"1003","type":"Blueberry"},{"id":"1004","type":"Devil\\'s Food"}]},"topping":[{"id":"5001","type":"None"},{"id":"5002","type":"Glazed"},{"id":"5005","type":"Sugar"},{"id":"5007","type":"Powdered Sugar"},{"id":"5006","type":"Chocolate with Sprinkles"},{"id":"5003","type":"Chocolate"},{"id":"5004","type":"Maple"}]}');
+
+        return strings.stringify();
+        //return strings.stringify();
     }
 }
 
@@ -67,11 +70,12 @@ async function test(i) {
                 method: 'main',
                 params: [ i ]
             });
+            // console.log(JSON.parse(callContract));
             var elapsed = process.hrtime(start)[1] / 1000000;
             responses.push(elapsed);
             // console.log(JSON.parse(callContract));
             // console.log(elapsed);
-        }, 0);
+        }, 1000);
     }
 }
 

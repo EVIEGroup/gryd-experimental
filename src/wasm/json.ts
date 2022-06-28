@@ -580,7 +580,7 @@ class JSONEncoder {
 }
 
 class Handler extends JSONHandler {
-  stack: Value[] = new Array<Value>();
+  stack: JSON.Value[] = new Array<JSON.Value>();
 
   reset(): void {
     while (this.stack.length > 0) {
@@ -588,37 +588,37 @@ class Handler extends JSONHandler {
     }
   }
 
-  get peek(): Value {
+  get peek(): JSON.Value {
     return this.stack[this.stack.length - 1];
   }
 
   setString(name: string, value: string): void {
-    const obj: Value = Value.String(value);
+    const obj: JSON.Value = JSON.Value.String(value);
     this.addValue(name, obj);
   }
 
   setBoolean(name: string, value: bool): void {
-    const obj = Value.Bool(value);
+    const obj = JSON.Value.Bool(value);
     this.addValue(name, obj);
   }
 
   setNull(name: string): void {
-    const obj = Value.Null();
+    const obj = new JSON.Null();
     this.addValue(name, obj);
   }
 
   setInteger(name: string, value: i64): void {
-    const obj = Value.Integer(value);
+    const obj = JSON.Value.Integer(value);
     this.addValue(name, obj);
   }
 
   setFloat(name: string, value: f64): void {
-    const obj = Value.Float(value);
+    const obj = JSON.Value.Float(value);
     this.addValue(name, obj);
   }
 
   pushArray(name: string): bool {
-    const obj: Value = Value.Array();
+    const obj: JSON.Value = JSON.Value.Array();
     if (this.stack.length == 0) {
       this.stack.push(obj);
     } else {
@@ -635,7 +635,7 @@ class Handler extends JSONHandler {
   }
 
   pushObject(name: string): bool {
-    const obj: Value = Value.Object();
+    const obj: JSON.Value = JSON.Value.Object();
     this.addValue(name, obj);
     this.stack.push(obj);
     return true;
@@ -647,15 +647,15 @@ class Handler extends JSONHandler {
     }
   }
 
-  addValue(name: string, obj: Value): void {
+  addValue(name: string, obj: JSON.Value): void {
     if (name.length == 0 && this.stack.length == 0) {
       this.stack.push(obj);
       return;
     }
-    if (this.peek instanceof Obj) {
-      (this.peek as Obj).set(name, obj);
-    } else if (this.peek instanceof Arr) {
-      (<Arr>this.peek).push(obj);
+    if (this.peek instanceof JSON.Obj) {
+      (this.peek as JSON.Obj).set(name, obj);
+    } else if (this.peek instanceof JSON.Arr) {
+      (<JSON.Arr>this.peek).push(obj);
     }
   }
 }
@@ -671,7 +671,7 @@ namespace _JSON {
   );
 
   /** Parses a string or Uint8Array and returns a Json Value. */
-  export function parse<T = Uint8Array>(str: T): Value {
+  export function parse<T = Uint8Array>(str: T): JSON.Value {
     var arr: Uint8Array;
     if (isString<T>(str)) {
       arr = Buffer.fromString(<string>str);
@@ -691,186 +691,186 @@ namespace JSON {
     @lazy const NULL: Null = new Null();
 
     export abstract class Value {
-    static String(str: string): Str {
-        return new Str(str);
-    }
-    static Number(num: f64): Num {
-        return new Num(num);
-    }
-    static Float(num: f64): Float {
-        return new Float(num);
-    }
-    static Integer(num: i64): Integer {
-        return new Integer(num);
-    }
-    static Bool(b: bool): Bool {
-        return new Bool(b);
-    }
-    static Null(): Null {
-        return NULL;
-    }
-    static Array(): Arr {
-        return new Arr();
-    }
-    static Object(): Obj {
-        return new Obj();
-    }
+      static String(str: string): Str {
+          return new Str(str);
+      }
+      static Number(num: f64): Num {
+          return new Num(num);
+      }
+      static Float(num: f64): Float {
+          return new Float(num);
+      }
+      static Integer(num: i64): Integer {
+          return new Integer(num);
+      }
+      static Bool(b: bool): Bool {
+          return new Bool(b);
+      }
+      static Null(): Null {
+          return NULL;
+      }
+      static Array(): Arr {
+          return new Arr();
+      }
+      static Object(): Obj {
+          return new Obj();
+      }
 
-    get isString(): boolean {
-        return this instanceof Str;
-    }
+      get isString(): boolean {
+          return this instanceof Str;
+      }
 
-    get isNum(): boolean {
-        return this instanceof Num;
-    }
+      get isNum(): boolean {
+          return this instanceof Num;
+      }
 
-    get isFloat(): boolean {
-        return this instanceof Float;
-    }
+      get isFloat(): boolean {
+          return this instanceof Float;
+      }
 
-    get isInteger(): boolean {
-        return this instanceof Integer;
-    }
+      get isInteger(): boolean {
+          return this instanceof Integer;
+      }
 
-    get isBool(): boolean {
-        return this instanceof Bool;
-    }
+      get isBool(): boolean {
+          return this instanceof Bool;
+      }
 
-    get isNull(): boolean {
-        return this instanceof Null;
-    }
+      get isNull(): boolean {
+          return this instanceof Null;
+      }
 
-    get isArr(): boolean {
-        return this instanceof Arr;
-    }
+      get isArr(): boolean {
+          return this instanceof Arr;
+      }
 
-    get isObj(): boolean {
-        return this instanceof Obj;
-    }
+      get isObj(): boolean {
+          return this instanceof Obj;
+      }
 
-    /**
-    * @returns A valid JSON string of the value
-    */
-    abstract stringify(): string;
+      /**
+      * @returns A valid JSON string of the value
+      */
+      abstract stringify(): string;
 
-    /**
-    * 
-    * @returns A AS string corresponding to the value. 
-    */
-    toString(): string {
-        return this.stringify();
-    }
+      /**
+      * 
+      * @returns A AS string corresponding to the value. 
+      */
+      toString(): string {
+          return this.stringify();
+      }
     }
 
     function escapeChar(char: string): string {
-    const charCode = char.charCodeAt(0);
-    switch (charCode) {
-        case 0x22: return '\\\\"';
-        case 0x5C: return "\\\\\\\\";
-        case 0x08: return "\\\\b";
-        case 0x0A: return "\\\\n";
-        case 0x0D: return "\\\\r";
-        case 0x09: return "\\\\t";
-        case 0x0C: return "\\\\f";
-        case 0x0B: return "\\\\u000b";
-        default: return char;
-    }
+      const charCode = char.charCodeAt(0);
+      switch (charCode) {
+          case 0x22: return '\\\\"';
+          case 0x5C: return "\\\\\\\\";
+          case 0x08: return "\\\\b";
+          case 0x0A: return "\\\\n";
+          case 0x0D: return "\\\\r";
+          case 0x09: return "\\\\t";
+          case 0x0C: return "\\\\f";
+          case 0x0B: return "\\\\u000b";
+          default: return char;
+      }
     }
 
     class Str extends Value {
-    constructor(public _str: string) {
-        super();
-    }
+      constructor(public _str: string) {
+          super();
+      }
 
-    stringify(): string {
-        let escaped: string[] = new Array(this._str.length);
-        for (let i = 0; i < this._str.length; i++) {
-        const char = this._str.at(i);
-        escaped[i] = escapeChar(char);
-        }
-        return \`"\${escaped.join('')}"\`;
-    }
+      stringify(): string {
+          let escaped: string[] = new Array(this._str.length);
+          for (let i = 0; i < this._str.length; i++) {
+          const char = this._str.at(i);
+          escaped[i] = escapeChar(char);
+          }
+          return \`"\${escaped.join('')}"\`;
+      }
 
-    toString(): string {
-        return this._str;
-    }
+      toString(): string {
+          return this._str;
+      }
 
-    valueOf(): string {
-        return this._str;
-    }
+      valueOf(): string {
+          return this._str;
+      }
     }
 
     class Num extends Value {
-    constructor(public _num: f64) {
-        super();
-    }
+      constructor(public _num: f64) {
+          super();
+      }
 
-    stringify(): string {
-        return this._num.toString();
-    }
+      stringify(): string {
+          return this._num.toString();
+      }
 
-    valueOf(): f64 {
-        return this._num;
-    }
+      valueOf(): f64 {
+          return this._num;
+      }
     }
 
     class Float extends Num {
     }
 
     class Integer extends Value {
-    constructor(public _num: i64) {
-        super();
-    }
+      constructor(public _num: i64) {
+          super();
+      }
 
-    stringify(): string {
-        return this._num.toString();
-    }
+      stringify(): string {
+          return this._num.toString();
+      }
 
-    valueOf(): i64 {
-        return this._num;
-    }
+      valueOf(): i64 {
+          return this._num;
+      }
     }
 
     class Null extends Value {
-    constructor() {
-        super();
-    }
+      constructor() {
+          super();
+      }
 
-    stringify(): string {
-        return "null";
-    }
+      stringify(): string {
+          return "null";
+      }
 
-    valueOf(): Null | null {
-        return null;
-    }
+      valueOf(): Null | null {
+          return null;
+      }
     }
 
     class Bool extends Value {
-    constructor(public _bool: bool) {
-        super();
-    }
+      constructor(public _bool: bool) {
+          super();
+      }
 
-    stringify(): string {
-        return this._bool.toString();
-    }
+      stringify(): string {
+          return this._bool.toString();
+      }
 
-    valueOf(): bool {
-        return this._bool;
-    }
+      valueOf(): bool {
+          return this._bool;
+      }
     }
 
     class Arr extends Value {
-        _arr: Array<Value>;
-        constructor() {
+      _arr: Array<Value>;
+      constructor() {
         super();
         this._arr = new Array<Value>();
-        }
+      }
 
-        push(obj: Value): void {
+      push(obj: Value): void {
         this._arr.push(obj);
-        }
+      }
 
-        stringify(): string {
+      stringify(): string {
         return (
             "[" +
             this._arr
@@ -880,26 +880,26 @@ namespace JSON {
             .join(",") +
             "]"
         );
-        }
+      }
 
-        valueOf(): Array<Value> {
+      valueOf(): Array<Value> {
         return this._arr;
-        }
+      }
     }
 
     export class Obj extends Value {
-        _obj: Map<string, Value>;
+      _obj: Map<string, Value>;
 
-        constructor() {
+      constructor() {
         super();
         this._obj = new Map();
-        }
+      }
 
-        get keys(): string[] {
+      get keys(): string[] {
         return this._obj.keys();
-        }
+      }
 
-        stringify(): string {
+      stringify(): string {
         const keys = this._obj.keys();
         const objs: string[] = new Array<string>(keys.length);
         for (let i: i32 = 0; i < keys.length; i++) {
@@ -912,13 +912,13 @@ namespace JSON {
         }
 
         return \`{\${objs.join(",")}}\`;
-        }
+      }
 
-        valueOf(): Map<string, Value> {
+      valueOf(): Map<string, Value> {
         return this._obj;
-        }
+      }
 
-        set<T>(key: string, value: T): void {
+      set<T>(key: string, value: T): void {
         if (isReference<T>(value)) {
             if (value instanceof Value) {
             this._obj.set(key, <Value>value);
@@ -926,78 +926,78 @@ namespace JSON {
             }
         }
         this._obj.set(key, from<T>(value));
-        }
+      }
 
-        has(key: string): bool {
+      has(key: string): bool {
         return this._obj.has(key);
-        }
+      }
 
-        get(key: string): Value | null {
+      get(key: string): Value | null {
         if (!this._obj.has(key)) {
             return null;
         }
         return this._obj.get(key);
-        }
+      }
 
-        getValue(key: string): Value | null {
+      getValue(key: string): Value | null {
         return this.get(key);
-        }
+      }
 
-        getString(key: string): Str | null {
+      getString(key: string): Str | null {
         let jsonValue = this.get(key);
         if (jsonValue != null && jsonValue.isString) {
             return <Str>jsonValue;
         }
         return null;
-        }
+      }
 
-        getNum(key: string): Num | null {
+      getNum(key: string): Num | null {
         let jsonValue = this.get(key);
         if (jsonValue != null && jsonValue.isNum) {
             return <Num>jsonValue;
         }
         return null;
-        }
+      }
 
-        getFloat(key: string): Float | null {
+      getFloat(key: string): Float | null {
         let jsonValue = this.get(key);
         if (jsonValue != null && jsonValue.isFloat) {
             return <Float>jsonValue;
         }
         return null;
-        }
+      }
 
-        getInteger(key: string): Integer | null {
+      getInteger(key: string): Integer | null {
         let jsonValue = this.get(key);
         if (jsonValue != null && jsonValue.isInteger) {
             return <Integer>jsonValue;
         }
         return null;
-        }
+      }
 
-        getBool(key: string): Bool | null {
+      getBool(key: string): Bool | null {
         let jsonValue = this.get(key);
         if (jsonValue != null && jsonValue.isBool) {
             return <Bool>jsonValue;
         }
         return null;
-        }
+      }
 
-        getArr(key: string): Arr | null {
+      getArr(key: string): Arr | null {
         let jsonValue = this.get(key);
         if (jsonValue != null && jsonValue.isArr) {
             return <Arr>jsonValue;
         }
         return null;
-        }
+      }
 
-        getObj(key: string): Obj | null {
+      getObj(key: string): Obj | null {
         let jsonValue = this.get(key);
         if (jsonValue != null && jsonValue.isObj) {
             return <Obj>jsonValue;
         }
         return null;
-        }
+      }
     }
 
     function from<T>(val: T): Value {

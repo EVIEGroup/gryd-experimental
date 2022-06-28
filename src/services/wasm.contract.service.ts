@@ -77,7 +77,7 @@ export class WASMContractService extends ContractService {
         // Cache for Metered WASM
         const meteredWasm = this.meteredWasm(contractHash, wasm);
 
-        const limit = 90000000;
+        const limit = 200000000;
         let gasUsed = 0;
 
         const module = await AsBind.instantiate(meteredWasm, {
@@ -86,7 +86,7 @@ export class WASMContractService extends ContractService {
                     //@Todo set gas based on instantiating call
                     gasUsed += gas;
                     if (gasUsed > limit) {
-                        throw new Error('out of gas!')
+                        //throw new Error('out of gas!')
                     }
                 }
             },
