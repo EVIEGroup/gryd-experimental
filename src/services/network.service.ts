@@ -11,8 +11,11 @@ export class NetworkService {
         var peerIds = {}
 
         networkSwarm.on('peer', function (peer, id) {
-            peerIds[id] = id;
+            peerIds[id] = peer;
             console.log(peerIds);
+            peer.on('data', function (data) {
+                console.log(id, peer, data);
+            });
         });
     }
 }
