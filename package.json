@@ -37,6 +37,7 @@
     "@types/jest": "^27.0.3",
     "@types/libsodium-wrappers": "^0.7.9",
     "@types/node": "^16.11.17",
+    "@types/simple-peer": "^9.11.4",
     "@types/uuid": "^8.3.3",
     "html-webpack-plugin": "^5.5.0",
     "jest": "^27.4.5",
@@ -51,7 +52,6 @@
     "webpack-dev-server": "^4.7.1"
   },
   "dependencies": {
-    "@corwin.amber/webrtc-swarm": "github:corwin-of-amber/webrtc-swarm",
     "as-bind": "github:upperfoot/as-bind#master",
     "assemblyscript": "github:upperfoot/assemblyscript#develop",
     "assert-browserify": "^2.0.0",
@@ -63,7 +63,9 @@
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
     "process": "^0.11.10",
+    "sdp": "^3.0.3",
     "signalhub": "^4.9.0",
+    "simple-peer": "^9.11.1",
     "stream-browserify": "^3.0.0",
     "uuid": "^8.3.2",
     "wasm-metering": "^0.2.1",

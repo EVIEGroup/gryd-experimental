@@ -5,7 +5,6 @@ import { NetworkService } from './network.service';
 
 export type NodeOptions = {
     server: boolean;
-    signalHubServer: any;
 }
 
 export class NodeService {
@@ -14,23 +13,17 @@ export class NodeService {
     ready: boolean = false;
     contracts = new Map();
     
-    constructor(public options: NodeOptions = { server: false, signalHubServer: null }) {
+    constructor(public options: NodeOptions = { server: false }) {
         this.contractService = new WASMContractService();
         this.networkService = new NetworkService(options.server);
+        console.log('OPT', options)
     }
 
     async start(id) {
         //@Todo - Start Node & Connect to Network Peers from Bootstrap
 
-        if(this.options.signalHubServer && this.options.server) {
-            this.options.signalHubServer.listen(9000, () => {
-                this.networkService.start();
-                this.ready = true;
-            });
-        } else {
-            this.networkService.start();
-            this.ready = true;
-        }
+        await this.networkService.start();
+        this.ready = true;
     }
 
     async deployContract(script: string) {

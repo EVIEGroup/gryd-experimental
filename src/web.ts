@@ -71,6 +71,7 @@ async function test(i) {
     const node = new NodeService();
     await node.start(i);
 
+    return; 
     const deployedHash = await node.deployContract(contractCode);
 
     const responses = [];

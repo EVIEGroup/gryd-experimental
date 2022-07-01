@@ -58,7 +58,6 @@ let deployedHash = null;
 async function test(i) {
     const node = new NodeService({
         server: true,
-        signalHubServer: signalhubServer(),
     });
     await node.start(i);
 
